@@ -1,0 +1,438 @@
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #f4f7fa, #e2e8f0);
+    color: #333;
+    display: flex;
+    min-height: 100vh;
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Sidebar Menu */
+.menu {
+    width: 280px;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: #fff;
+    height: 100vh;
+    padding: 30px 20px;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
+    transform: translateX(0);
+}
+
+.menu .profile {
+    text-align: center;
+    margin-bottom: 30px;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.menu .profile .img-box {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.menu .profile .img-box:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
+}
+
+.menu .profile .img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.menu .profile h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-top: 10px;
+    color: #ecf0f1;
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+.menu ul {
+    list-style: none;
+    flex-grow: 1;
+}
+
+.menu ul li {
+    margin: 18px 0;
+    animation: slideIn 0.5s ease-in-out;
+    animation-fill-mode: both;
+}
+
+.menu ul li:nth-child(1) { animation-delay: 0.2s; }
+.menu ul li:nth-child(2) { animation-delay: 0.4s; }
+.menu ul li:nth-child(3) { animation-delay: 0.6s; }
+.menu ul li:nth-child(4) { animation-delay: 0.8s; }
+.menu ul li:nth-child(5) { animation-delay: 1s; }
+.menu ul li:nth-child(6) { animation-delay: 1.2s; }
+
+.menu ul li a {
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.menu ul li a:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(10px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.menu ul li a.active {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.menu ul li a i {
+    font-size: 1.3rem;
+    margin-right: 12px;
+    transition: transform 0.3s ease;
+}
+
+.menu ul li a:hover i {
+    transform: scale(1.2);
+}
+
+.menu ul li a p {
+    font-size: 1.1rem;
+}
+
+.menu .log-out {
+    margin-top: auto;
+    animation: fadeIn 2s ease-in-out;
+}
+
+/* Main Content */
+.container {
+    flex-grow: 1;
+    padding: 30px;
+    background: #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    margin: 20px;
+    overflow-y: auto;
+    max-height: 90vh;
+    scrollbar-width: thin;
+    scrollbar-color: #bdc3c7 #ffffff;
+}
+
+h1, h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+/* Form Styling */
+form {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+form input, form select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    outline: none;
+    font-size: 16px;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+form input:focus, form select:focus {
+    border-color: #2980b9;
+    box-shadow: 0 0 8px rgba(41, 128, 185, 0.5);
+}
+
+form button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: none;
+    background: #3498db;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s;
+}
+
+form button:hover {
+    background: #2980b9;
+    transform: scale(1.05);
+}
+
+form button:active {
+    transform: scale(1);
+}
+
+/* Message Styling */
+#message, #updateMessage, #deleteMessage {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#message.success, #updateMessage.success, #deleteMessage.success {
+    background: #dff9fb;
+    color: #0a3d62;
+}
+
+#message.error, #updateMessage.error, #deleteMessage.error {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* All Drivers Section */
+#driversList {
+    display: grid;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.driver {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.driver:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.driver p {
+    margin: 8px 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.driver p strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* Load Drivers Button */
+#loadDrivers {
+    padding: 12px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s;
+    margin-bottom: 20px;
+}
+
+#loadDrivers:hover {
+    background-color: #2980b9;
+    transform: scale(1.05);
+}
+
+#loadDrivers:active {
+    transform: scale(1);
+}
+
+/* Update Driver Section */
+#updateDriverForm {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Drivers Table Styling */
+.drivers-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.drivers-table th,
+.drivers-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.drivers-table th {
+    background-color: #3498db;
+    color: white;
+    font-weight: 600;
+}
+
+.drivers-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.drivers-table tr:hover {
+    background-color: #e9ecef;
+    transition: background-color 0.3s ease;
+}
+
+.drivers-table td {
+    color: #333;
+}
+/* Load Drivers Button */
+#loadDrivers {
+    padding: 12px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+#loadDrivers:hover {
+    background-color: #2980b9;
+    transform: scale(1.05);
+}
+
+#loadDrivers:active {
+    transform: scale(1);
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+    #driversList {
+        display: block;
+    }
+
+    .driver {
+        display: block;
+        margin-bottom: 20px;
+    }
+
+    .driver th, .driver td {
+        display: block;
+        width: 100%;
+        padding: 12px 15px;
+    }
+
+    .driver th {
+        text-align: left;
+    }
+
+    .driver td {
+        background-color: #fff;
+    }
+
+    .driver td strong {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .driver td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        margin-right: 8px;
+    }
+}
+
+
+#updateDriverForm input,
+#updateDriverForm select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    outline: none;
+    font-size: 16px;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+#updateDriverForm input:focus,
+#updateDriverForm select:focus {
+    border-color: #2980b9;
+    box-shadow: 0 0 8px rgba(41, 128, 185, 0.5);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .menu {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: -100%;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .menu.open {
+        transform: translateX(0);
+    }
+
+    .container {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .menu ul {
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+    }
+
+    .menu ul li {
+        margin: 10px 0;
+    }
+
+    .menu .profile h2 {
+        font-size: 1.4rem;
+    }
+
+    #loadDrivers {
+        width: 100%;
+    }
+
+    .driver {
+        grid-template-columns: 1fr;
+    }
+}

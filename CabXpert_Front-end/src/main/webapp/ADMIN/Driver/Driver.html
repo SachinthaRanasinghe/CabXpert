@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+        <link rel="stylesheet" href="style.css" />
+        <title>Dashboard</title>
+    </head>
+    <body>
+        <!-- Sidebar Menu -->
+        <nav class="menu">
+            <ul>
+                <li class="profile">
+                    <div class="img-box">
+                        <img src="logo.png" alt="Profile Picture" />
+                    </div>
+                    <h2>Admin</h2>
+                </li>
+                <li><a class="active" href="Driver.html"><i class="fas fa-home"></i><p>Drivers</p></a></li>
+                <li><a href="../Login/Register.html"><i class="fa-solid fa-user-group"></i><p>Users</p></a></li>
+                <li><a href="../Bookings/Bookings.html"><i class="fa-solid fa-user-group"></i><p>Bills</p></a></li>
+                <li><a href="../Vehicle/Vehicle.html"><i class="fas fa-table"></i><p>Vehicle</p></a></li>
+                <li class="log-out"><a href="../Login/Login.html"><i class="fas fa-sign-out-alt"></i><p>Log Out</p></a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="container">
+            <h2>All Drivers</h2>
+            <button id="loadDrivers">Load Drivers</button>
+            <table id="driversTable" style="width:100%; margin-top:20px; border-collapse: collapse;">
+                <tbody id="driversList">
+                    <!-- Driver data will be inserted here -->
+                </tbody>
+            </table>
+
+            <h2>Add Driver</h2>
+            <form id="driverForm">
+                <input type="text" id="driverName" placeholder="Enter Driver's Name" required />
+                <input type="text" id="driverPhone" placeholder="Enter Phone Number" required pattern="\d{10}" />
+                <input type="text" id="driverLicense" placeholder="Enter License Number" required />
+                <select id="vehicleId">
+                    <!-- Vehicle IDs will be populated here dynamically -->
+                </select>
+                <button type="submit">Add Driver</button>
+            </form>
+            <p id="message"></p>
+
+            <h2>Update Driver</h2>
+            <form id="updateDriverForm">
+                <input type="number" id="updateDriverId" placeholder="Driver ID" required />
+                <input type="text" id="updateDriverName" placeholder="New Driver's Name" />
+                <input type="text" id="updateDriverPhone" placeholder="New Phone Number" pattern="\d{10}" />
+                <input type="text" id="updateDriverLicense" placeholder="New License Number" />
+                <select id="updateDriverAvailability">
+                    <option value="Available">Available</option>
+                    <option value="On Trip">On Trip</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+                <select id="updateVehicleId">
+                    <!-- Vehicle IDs will be populated here dynamically -->
+                </select>
+                <button type="submit">Update Driver</button>
+            </form>
+            <p id="updateMessage"></p>
+
+            <h2>Delete Driver</h2>
+            <form id="deleteDriverForm">
+                <input type="number" id="deleteDriverId" placeholder="Driver ID" required />
+                <button type="submit">Delete Driver</button>
+            </form>
+            <p id="deleteMessage"></p>
+        </div>
+
+        <script>
+            // Fetch Vehicle IDs and populate the dropdown
+            async function loadVehicleIds() {
+                try {
+                    const response = await fetch("http://localhost:8080/CabXpert_Back-end/webresources/Drivers/vehicles");
+                    if (!response.ok) {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
+                    const vehicleIds = await response.json();
+                    const vehicleDropdown = document.getElementById("vehicleId");
+                    const updateVehicleDropdown = document.getElementById("updateVehicleId");
+
+                    // Clear existing options
+                    vehicleDropdown.innerHTML = "";
+                    updateVehicleDropdown.innerHTML = "";
+
+                    // Add a default option
+                    const defaultOption = document.createElement("option");
+                    defaultOption.value = "";
+                    defaultOption.textContent = "Select a Vehicle";
+                    vehicleDropdown.appendChild(defaultOption);
+                    updateVehicleDropdown.appendChild(defaultOption.cloneNode(true));
+
+                    // Add vehicle IDs to the dropdown
+                    vehicleIds.forEach(vehicleId => {
+                        const option = document.createElement("option");
+                        option.value = vehicleId;
+                        option.textContent = vehicleId;
+                        vehicleDropdown.appendChild(option);
+                        updateVehicleDropdown.appendChild(option.cloneNode(true));
+                    });
+                } catch (error) {
+                    console.error("Error loading vehicle IDs:", error);
+                    alert(`Error: ${error.message}`);
+                }
+            }
+
+            // Call the function to load vehicle IDs when the page loads
+            window.onload = loadVehicleIds;
+
+            // Add Driver
+            document.getElementById("driverForm").addEventListener("submit", async function (event) {
+                event.preventDefault();
+                const name = document.getElementById("driverName").value.trim();
+                const phoneNumber = document.getElementById("driverPhone").value.trim();
+                const licenseNumber = document.getElementById("driverLicense").value.trim();
+                const vehicleId = document.getElementById("vehicleId").value;
+                const messageElement = document.getElementById("message");
+
+                messageElement.textContent = "";
+                messageElement.style.color = "red";
+
+                if (!name || !phoneNumber || !licenseNumber || !vehicleId) {
+                    messageElement.textContent = "All fields are required!";
+                    return;
+                }
+
+                const driverData = {
+                    name,
+                    phoneNumber,
+                    licenseNumber,
+                    vehicleId: parseInt(vehicleId) // Include the selected vehicle ID
+                };
+
+                try {
+                    const response = await fetch(
+                            "http://localhost:8080/CabXpert_Back-end/webresources/Drivers/add",
+                            {
+                                method: "POST",
+                                headers: {"Content-Type": "application/json"},
+                                body: JSON.stringify(driverData),
+                            }
+                    );
+
+                    const responseText = await response.text();
+
+                    if (!response.ok) {
+                        let errorMessage = `Error ${response.status}: ${response.statusText}`;
+                        try {
+                            const jsonResponse = JSON.parse(responseText);
+                            if (jsonResponse.message) {
+                                errorMessage = jsonResponse.message;
+                            }
+                        } catch (jsonError) {
+                            console.error("Response is not JSON:", responseText);
+                        }
+                        throw new Error(errorMessage);
+                    }
+
+                    messageElement.style.color = "green";
+                    messageElement.textContent = "Driver added successfully!";
+                    document.getElementById("driverForm").reset();
+                } catch (error) {
+                    console.error("Fetch Error:", error);
+                    messageElement.textContent = `Error: ${error.message}`;
+                }
+            });
+
+            // Load All Drivers
+            document.getElementById("loadDrivers").addEventListener("click", async function () {
+                try {
+                    const response = await fetch("http://localhost:8080/CabXpert_Back-end/webresources/Drivers/all");
+
+                    if (!response.ok) {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
+
+                    const drivers = await response.json();
+                    const driversList = document.getElementById("driversList");
+                    driversList.innerHTML = ""; // Clear previous data
+
+                    // Create a table element
+                    const table = document.createElement("table");
+                    table.classList.add("drivers-table");
+
+                    // Create table header
+                    const headerRow = document.createElement("tr");
+                    const headers = ["ID", "Name", "Phone Number", "License Number", "Availability", "Vehicle ID"];
+                    headers.forEach(headerText => {
+                        const th = document.createElement("th");
+                        th.textContent = headerText;
+                        headerRow.appendChild(th);
+                    });
+                    table.appendChild(headerRow);
+
+                    // Populate table rows with driver data
+                    drivers.forEach(driver => {
+                        const row = document.createElement("tr");
+                        const columns = [driver.id, driver.name, driver.phoneNumber, driver.licenseNumber, driver.availability, driver.vehicleId || "N/A"];
+                        columns.forEach(columnData => {
+                            const td = document.createElement("td");
+                            td.textContent = columnData;
+                            row.appendChild(td);
+                        });
+                        table.appendChild(row);
+                    });
+
+                    // Append the table to the driversList container
+                    driversList.appendChild(table);
+                } catch (error) {
+                    console.error("Fetch Error:", error);
+                    alert(`Error: ${error.message}`);
+                }
+            });
+
+            // Update Driver
+            document.getElementById("updateDriverForm").addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                const id = document.getElementById("updateDriverId").value.trim();
+                const name = document.getElementById("updateDriverName").value.trim();
+                const phoneNumber = document.getElementById("updateDriverPhone").value.trim();
+                const licenseNumber = document.getElementById("updateDriverLicense").value.trim();
+                const availability = document.getElementById("updateDriverAvailability").value.trim();
+                const vehicleId = document.getElementById("updateVehicleId").value.trim();
+                const updateMessageElement = document.getElementById("updateMessage");
+
+                updateMessageElement.textContent = "";
+                updateMessageElement.style.color = "red";
+
+                if (!id) {
+                    updateMessageElement.textContent = "Driver ID is required!";
+                    return;
+                }
+
+                // Create an object only with fields that have values
+                const driverData = {};
+                if (name)
+                    driverData.name = name;
+                if (phoneNumber)
+                    driverData.phoneNumber = phoneNumber;
+                if (licenseNumber)
+                    driverData.licenseNumber = licenseNumber;
+                if (availability)
+                    driverData.availability = availability;
+                if (vehicleId)
+                    driverData.vehicleId = parseInt(vehicleId);
+
+                if (Object.keys(driverData).length === 0) {
+                    updateMessageElement.textContent = "At least one field must be updated!";
+                    return;
+                }
+
+                try {
+                    const response = await fetch(
+                            `http://localhost:8080/CabXpert_Back-end/webresources/Drivers/update/${id}`,
+                            {
+                                method: "PUT",
+                                headers: {"Content-Type": "application/json"},
+                                body: JSON.stringify(driverData),
+                            }
+                    );
+
+                    const responseData = await response.json();
+
+                    if (response.ok) {
+                        updateMessageElement.style.color = "green";
+                    }
+                    updateMessageElement.textContent = responseData.message;
+                } catch (error) {
+                    console.error("Error updating driver:", error);
+                    updateMessageElement.textContent = "Failed to update driver";
+                }
+            });
+
+            // Delete Driver
+            document.getElementById("deleteDriverForm").addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                const driverId = document.getElementById("deleteDriverId").value.trim();
+                const deleteMessageElement = document.getElementById("deleteMessage");
+
+                deleteMessageElement.textContent = "";
+                deleteMessageElement.style.color = "red";
+
+                if (!driverId) {
+                    deleteMessageElement.textContent = "Driver ID is required!";
+                    return;
+                }
+
+                try {
+                    const response = await fetch(
+                            `http://localhost:8080/CabXpert_Back-end/webresources/Drivers/delete/${driverId}`,
+                            {method: "DELETE"}
+                    );
+
+                    const responseText = await response.text();
+
+                    if (!response.ok) {
+                        let errorMessage = `Error ${response.status}: ${response.statusText}`;
+                        try {
+                            const jsonResponse = JSON.parse(responseText);
+                            if (jsonResponse.message) {
+                                errorMessage = jsonResponse.message;
+                            }
+                        } catch (jsonError) {
+                            console.error("Response is not JSON:", responseText);
+                        }
+                        throw new Error(errorMessage);
+                    }
+
+                    deleteMessageElement.style.color = "green";
+                    deleteMessageElement.textContent = "Driver deleted successfully!";
+                    document.getElementById("deleteDriverForm").reset();
+                } catch (error) {
+                    console.error("Fetch Error:", error);
+                    deleteMessageElement.textContent = `Error: ${error.message}`;
+                }
+            });
+        </script>
+    </body>
+</html>

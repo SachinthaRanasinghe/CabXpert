@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Management - CabXpert</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+       <link rel="stylesheet" href="css/Register.css" />
+    <style>
+    
+    </style>
+</head>
+<body>
+
+<nav class="menu">
+    <ul>
+        <li class="profile">
+            <div class="img-box">
+                <img src="./images/logo.png" alt="Profile Picture" />
+            </div>
+            <h2>Admin</h2>
+        </li>
+        <li><a class="active" href="../Login/Register.html"><i class="fas fa-home"></i><p>Users</p></a></li>
+        <li><a href="../Driver/Driver.html"><i class="fa-solid fa-user-group"></i><p>Drivers</p></a></li>
+        <li><a href="../Bookings/Bookings.html"><i class="fa-solid fa-user-group"></i><p>Bills</p></a></li>
+        <li><a href="../Vehicle/Vehicle.html"><i class="fas fa-table"></i><p>Vehicle</p></a></li>
+        
+        <li class="log-out"><a href="../Login/Login.html"><i class="fas fa-sign-out-alt"></i><p>Log Out</p></a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <h1>User Management</h1>
+
+    <!-- User List Table -->
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th>UserID</th>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>NIC</th>
+                <th>Role</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Add User Form -->
+    <h2>Add New User</h2>
+    <form id="userForm" class="form">
+        <div class="inputBx">
+            <label for="username">Username:</label>
+            <input type="text" id="username" required>
+        </div>
+        <div class="inputBx">
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+        </div>
+        <div class="inputBx">
+            <label for="fullName">Full Name:</label>
+            <input type="text" id="fullName" required>
+        </div>
+        <div class="inputBx">
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="inputBx">
+            <label for="phoneNumber">Phone Number:</label>
+            <input type="text" id="phoneNumber" required>
+        </div>
+        <div class="inputBx">
+            <label for="address">Address:</label>
+            <input type="text" id="address" required>
+        </div>
+        <div class="inputBx">
+            <label for="nic">NIC:</label>
+            <input type="text" id="nic" required>
+        </div>
+        <div class="inputBx">
+            <label for="role">Role:</label>
+            <select id="role" required>
+                <option value="Admin">Admin</option>
+                <option value="Staff">Staff</option>
+            </select>
+        </div>
+        <div class="inputBx">
+            <input type="submit" value="Add User">
+        </div>
+    </form>
+
+    <!-- Edit User Form (hidden initially) -->
+    <h2>Edit User</h2>
+    <form id="editUserForm" class="form" style="display:none;">
+        <div class="inputBx">
+            <label for="editUsername">Username:</label>
+            <input type="text" id="editUsername" required>
+        </div>
+        <div class="inputBx">
+            <label for="editPassword">Password:</label>
+            <input type="password" id="editPassword" required>
+        </div>
+        <div class="inputBx">
+            <label for="editFullName">Full Name:</label>
+            <input type="text" id="editFullName" required>
+        </div>
+        <div class="inputBx">
+            <label for="editEmail">Email:</label>
+            <input type="email" id="editEmail" required>
+        </div>
+        <div class="inputBx">
+            <label for="editPhoneNumber">Phone Number:</label>
+            <input type="text" id="editPhoneNumber" required>
+        </div>
+        <div class="inputBx">
+            <label for="editAddress">Address:</label>
+            <input type="text" id="editAddress" required>
+        </div>
+        <div class="inputBx">
+            <label for="editNic">NIC:</label>
+            <input type="text" id="editNic" required>
+        </div>
+        <div class="inputBx">
+            <label for="editRole">Role:</label>
+            <select id="editRole" required>
+                <option value="Admin">Admin</option>
+                <option value="Staff">Staff</option>
+            </select>
+        </div>
+        <div class="inputBx">
+            <input type="submit" value="Update User">
+            <input type="button" id="cancelEditButton" value="Cancel">
+        </div>
+    </form>
+
+    <!-- Error Message -->
+    <div id="errorMessage" class="error"></div>
+</div>
+
+<script>
+    const apiUrl = 'http://localhost:8080/CabXpert_Back-end/webresources/user';
+    let editingUserId = null;
+
+    // Fetch and display users
+    async function fetchUsers() {
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            const tableBody = document.querySelector('#userTable tbody');
+            tableBody.innerHTML = '';
+
+            data.forEach(user => {
+                const row = `
+                    <tr>
+                        <td>${user.userID}</td>
+                        <td>${user.username}</td>
+                        <td>${user.fullName}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phoneNumber}</td>
+                        <td>${user.address}</td>
+                        <td>${user.nic}</td>
+                        <td>${user.role}</td>
+                        <td>${new Date(user.createdAt).toLocaleString()}</td>
+                        <td>
+                             <button class="delete-btn" onclick="deleteUser(${user.userID})">Delete</button>
+    <button class="edit-btn" onclick="editUser(${user.userID}, '${user.username}', '${user.fullName}', '${user.email}', '${user.phoneNumber}', '${user.address}', '${user.nic}', '${user.role}')">Edit</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        }
+    }
+
+    // Add a new user
+    document.getElementById("userForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const user = {
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value,
+            fullName: document.getElementById("fullName").value,
+            email: document.getElementById("email").value,
+            phoneNumber: document.getElementById("phoneNumber").value,
+            address: document.getElementById("address").value,
+            nic: document.getElementById("nic").value,
+            role: document.getElementById("role").value
+        };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(user)
+            });
+            const data = await response.json();
+            alert(data.message);
+            fetchUsers();  // Refresh the user list
+        } catch (error) {
+            console.error("Error adding user:", error);
+        }
+    });
+
+    // Edit user
+    async function editUser(userID, username, fullName, email, phoneNumber, address, nic, role) {
+        editingUserId = userID;
+        document.getElementById("editUsername").value = username;
+        document.getElementById("editFullName").value = fullName;
+        document.getElementById("editEmail").value = email;
+        document.getElementById("editPhoneNumber").value = phoneNumber;
+        document.getElementById("editAddress").value = address;
+        document.getElementById("editNic").value = nic;
+        document.getElementById("editRole").value = role;
+
+        document.getElementById("editUserForm").style.display = 'block';
+    }
+
+    // Update user
+    document.getElementById("editUserForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const user = {
+            username: document.getElementById("editUsername").value,
+            password: document.getElementById("editPassword").value,
+            fullName: document.getElementById("editFullName").value,
+            email: document.getElementById("editEmail").value,
+            phoneNumber: document.getElementById("editPhoneNumber").value,
+            address: document.getElementById("editAddress").value,
+            nic: document.getElementById("editNic").value,
+            role: document.getElementById("editRole").value
+        };
+
+        try {
+            const response = await fetch(`${apiUrl}/${editingUserId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(user)
+            });
+            const data = await response.json();
+            alert(data.message);
+            fetchUsers();  // Refresh the user list
+            cancelEdit();
+        } catch (error) {
+            console.error("Error updating user:", error);
+        }
+    });
+
+    // Delete user
+    async function deleteUser(userID) {
+        if (confirm("Are you sure you want to delete this user?")) {
+            try {
+                const response = await fetch(`${apiUrl}/${userID}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                alert(data.message);
+                fetchUsers();  // Refresh the user list
+            } catch (error) {
+                console.error("Error deleting user:", error);
+            }
+        }
+    }
+
+    // Cancel edit
+    document.getElementById("cancelEditButton").addEventListener("click", cancelEdit);
+
+    function cancelEdit() {
+        document.getElementById("editUserForm").style.display = 'none';
+        editingUserId = null;
+    }
+
+    // Initial fetch
+    fetchUsers();
+</script>
+
+</body>
+</html>

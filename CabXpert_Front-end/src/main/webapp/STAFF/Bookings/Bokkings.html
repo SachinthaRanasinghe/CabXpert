@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <title>Dashboard</title>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        fetch('http://localhost:8080/CabXpert_Back-end/webresources/AddBooking/getCustomerAndDriver')
+          .then(response => response.json())
+          .then(data => {
+            const customerSelect = document.getElementById('customer');
+            data.customers.forEach(customer => {
+              const option = document.createElement('option');
+              option.value = customer.CustomerID;
+              option.textContent = customer.NIC;
+              customerSelect.appendChild(option);
+            });
+
+            const driverSelect = document.getElementById('driver');
+            data.drivers.forEach(driver => {
+              const option = document.createElement('option');
+              option.value = driver.DriverID;
+              option.textContent = driver.Name;
+              driverSelect.appendChild(option);
+            });
+          })
+          .catch(error => console.error('Error fetching data:', error));
+      });
+
+      function bookCab(event) {
+        event.preventDefault();
+        
+        const pickup = document.getElementById('pickup').value;
+        const destination = document.getElementById('destination').value;
+        const fare = document.getElementById('fare').value;
+        const customerID = document.getElementById('customer').value;
+        const driverID = document.getElementById('driver').value;
+        
+        const bookingData = {
+          customerID: parseInt(customerID),
+          driverID: parseInt(driverID),
+          pickupLocation: pickup,
+          destination: destination,
+          fare: parseFloat(fare)
+        };
+        
+        fetch('http://localhost:8080/CabXpert_Back-end/webresources/AddBooking', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(bookingData)
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message || 'Booking successful!');
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to book. Please try again.');
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Sidebar Menu -->
+    <nav class="menu">
+      <ul>
+        <li class="profile">
+          <div class="img-box">
+            <img src="logo.png" alt="Profile Picture" />
+          </div>
+          <h2>STAFF</h2>
+        </li>
+        <li><a class="active" href="Bokkings.html"><i class="fas fa-home"></i><p>Bookings</p></a></li>
+        
+         <li><a href="../Customer/AddCustomer.html"><i class="fa-solid fa-user-group"></i><p>customers</p></a></li>
+        <li><a href="../Bill/Bill.html"><i class="fas fa-table"></i><p>Bills</p></a></li>
+        
+        <li class="log-out"><a href="../Login/Login.html"><i class="fas fa-sign-out-alt"></i><p>Log Out</p></a></li>
+      </ul>
+    </nav>
+
+    <!-- Booking Form -->
+    <div class="container">
+      <h2>Cab Booking</h2>
+      <form id="bookingForm" onsubmit="bookCab(event)">
+        <label for="customer">Customer:</label>
+        <select id="customer" name="customer" required>
+          <option value="">Select Customer</option>
+        </select>
+        
+        <label for="driver">Driver:</label>
+        <select id="driver" name="driver" required>
+          <option value="">Select Driver</option>
+        </select>
+        
+        <label for="pickup">Pickup Location:</label>
+        <input type="text" id="pickup" name="pickup" required>
+        
+        <label for="destination">Destination:</label>
+        <input type="text" id="destination" name="destination" required>
+        
+        <label for="fare">Fare:</label>
+        <input type="number" id="fare" name="fare" step="0.01" required>
+        
+        <button type="submit">Book Now</button>
+      </form>
+    </div>
+  </body>
+</html>

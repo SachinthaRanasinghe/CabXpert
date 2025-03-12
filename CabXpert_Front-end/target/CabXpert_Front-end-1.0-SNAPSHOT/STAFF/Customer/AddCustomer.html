@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Dashboard</title>
+</head>
+<body>
+    <!-- Sidebar Menu -->
+    <nav class="menu">
+        <ul>
+            <li class="profile">
+                <div class="img-box">
+                    <img src="logo.png" alt="Profile Picture" />
+                </div>
+                <h2>STAFF</h2>
+            </li>
+            <li><a class="active" href="../Bookings/Bokkings.html"><i class="fas fa-home"></i><p>Bookings</p></a></li>
+            <li><a href="AddCustomer.html"><i class="fa-solid fa-user-group"></i><p>Customers</p></a></li>
+            <li><a href="../Bill/Bill.html"><i class="fas fa-table"></i><p>Bills</p></a></li>
+            <li class="log-out"><a href="../Login/Login.html"><i class="fas fa-sign-out-alt"></i><p>Log Out</p></a></li>
+        </ul>
+    </nav>
+    
+    <!-- Main Content -->
+    <section class="container">
+        <h1>Customer Management</h1>
+
+        <!-- Show All Customers -->
+        <h2>All Customers</h2>
+        <button id="showAllCustomersBtn" class="btn">Show All Customers</button>
+        <div id="customerTable" class="customer-table"></div>
+
+        <!-- Forms Section -->
+        <div class="form-container">
+            <!-- Add Customer Form -->
+            <div class="customer-form">
+                <h2>Add Customer</h2>
+                <form id="addCustomerForm">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" placeholder="Name" required />
+                    <label for="phoneNumber">Phone Number</label>
+                    <input type="text" id="phoneNumber" placeholder="Phone Number" required />
+                    <label for="address">Address</label>
+                    <input type="text" id="address" placeholder="Address" required />
+                    <label for="nic">NIC</label>
+                    <input type="text" id="nic" placeholder="NIC" required />
+                    <button type="submit" class="btn">Add Customer</button>
+                </form>
+                <div id="addCustomerMessage" class="message"></div>
+            </div>
+            
+            <!-- Update Customer Form -->
+            <div class="customer-form">
+                <h2>Update Customer</h2>
+                <form id="updateCustomerForm">
+                    <label for="updateCustomerId">Customer ID</label>
+                    <input type="number" id="updateCustomerId" placeholder="Customer ID" required />
+                    <label for="updateName">Name</label>
+                    <input type="text" id="updateName" placeholder="Name" />
+                    <label for="updatePhoneNumber">Phone Number</label>
+                    <input type="text" id="updatePhoneNumber" placeholder="Phone Number" />
+                    <label for="updateAddress">Address</label>
+                    <input type="text" id="updateAddress" placeholder="Address" />
+                    <label for="updateNic">NIC</label>
+                    <input type="text" id="updateNic" placeholder="NIC" />
+                    <button type="submit" class="btn">Update Customer</button>
+                </form>
+                <div id="updateCustomerMessage" class="message"></div>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        const baseUrl = "http://localhost:8080/CabXpert_Back-end/webresources/Customer";
+        
+        // Add Customer
+        document.getElementById('addCustomerForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const customer = {
+                name: document.getElementById('name').value,
+                phoneNumber: document.getElementById('phoneNumber').value,
+                address: document.getElementById('address').value,
+                nic: document.getElementById('nic').value
+            };
+            const response = await fetch(`${baseUrl}/add`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(customer)
+            });
+            const result = await response.json();
+            document.getElementById('addCustomerMessage').textContent = result.message;
+        });
+
+        // Update Customer
+        document.getElementById('updateCustomerForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const customerId = document.getElementById('updateCustomerId').value;
+            const updatedCustomer = {
+                name: document.getElementById('updateName').value || null,
+                phoneNumber: document.getElementById('updatePhoneNumber').value || null,
+                address: document.getElementById('updateAddress').value || null,
+                nic: document.getElementById('updateNic').value || null
+            };
+            const response = await fetch(`${baseUrl}/update/${customerId}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(updatedCustomer)
+            });
+            const result = await response.json();
+            document.getElementById('updateCustomerMessage').textContent = result.message;
+        });
+
+        // Show All Customers
+        document.getElementById('showAllCustomersBtn').addEventListener('click', async function () {
+            const response = await fetch(`${baseUrl}/all`);
+            const customers = await response.json();
+            if (response.ok) {
+                let tableHTML = `<table><tr><th>ID</th><th>Name</th><th>Phone</th><th>Address</th><th>NIC</th><th>Registration Date</th><th>Action</th></tr>`;
+                customers.forEach(customer => {
+                    tableHTML += `<tr>
+                        <td>${customer.customerID}</td>
+                        <td>${customer.name}</td>
+                        <td>${customer.phoneNumber}</td>
+                        <td>${customer.address}</td>
+                        <td>${customer.nic}</td>
+                        <td>${customer.registrationDate}</td>
+                        <td><button class="btn delete-btn" onclick="deleteCustomer(${customer.customerID})">Delete</button></td>
+                    </tr>`;
+                });
+                tableHTML += `</table>`;
+                document.getElementById('customerTable').innerHTML = tableHTML;
+            } else {
+                document.getElementById('customerTable').textContent = 'No customers found.';
+            }
+        });
+
+        // Delete Customer from Table
+        async function deleteCustomer(customerId) {
+            if (confirm(`Are you sure you want to delete customer with ID ${customerId}?`)) {
+                const response = await fetch(`${baseUrl}/delete/${customerId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                alert(result.message);
+                document.getElementById('showAllCustomersBtn').click(); // Refresh the table
+            }
+        }
+
+        // Search Customers
+        document.getElementById('searchBtn').addEventListener('click', async function () {
+            const searchTerm = document.getElementById('searchInput').value;
+            const response = await fetch(`${baseUrl}/search?term=${searchTerm}`);
+            const customers = await response.json();
+            if (response.ok) {
+                let tableHTML = `<table><tr><th>ID</th><th>Name</th><th>Phone</th><th>Address</th><th>NIC</th><th>Registration Date</th><th>Action</th></tr>`;
+                customers.forEach(customer => {
+                    tableHTML += `<tr>
+                        <td>${customer.customerID}</td>
+                        <td>${customer.name}</td>
+                        <td>${customer.phoneNumber}</td>
+                        <td>${customer.address}</td>
+                        <td>${customer.nic}</td>
+                        <td>${customer.registrationDate}</td>
+                        <td><button class="btn delete-btn" onclick="deleteCustomer(${customer.customerID})">Delete</button></td>
+                    </tr>`;
+                });
+                tableHTML += `</table>`;
+                document.getElementById('customerTable').innerHTML = tableHTML;
+            } else {
+                document.getElementById('customerTable').textContent = 'No customers found.';
+            }
+        });
+    </script>
+</body>
+</html>

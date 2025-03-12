@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Vehicle Management</title>
+</head>
+<body>
+    <!-- Sidebar Menu -->
+    <nav class="menu">
+        <ul>
+            <li class="profile">
+                <div class="img-box">
+                    <img src="logo.png" alt="Profile Picture" />
+                </div>
+                <h2>Admin</h2>
+            </li>
+            <li><a class="active" href="Vehicle.html"><i class="fas fa-home"></i><p>Vehicles</p></a></li>
+            <li><a href="../Login/Register.html"><i class="fa-solid fa-user-group"></i><p>Users</p></a></li>
+            <li><a href="../Bookings/Bookings.html"><i class="fa-solid fa-user-group"></i><p>Bills</p></a></li>
+            <li><a href="../Driver/Driver.html"><i class="fas fa-table"></i><p>Drivers</p></a></li>
+            <li class="log-out"><a href="../Login/Login.html"><i class="fas fa-sign-out-alt"></i><p>Log Out</p></a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h2>All Vehicles</h2>
+        <button id="loadVehicles">Load Vehicles</button>
+        <table id="vehiclesTable" class="vehicles-table">
+    <thead>
+        
+    </thead>
+    <tbody id="vehiclesList">
+        <!-- Vehicle data will be inserted here -->
+    </tbody>
+</table>
+
+        <h2>Add Vehicle</h2>
+        <form id="vehicleForm">
+            <input type="text" id="licensePlate" placeholder="Enter License Plate" required />
+            <input type="text" id="model" placeholder="Enter Model" required />
+            <input type="number" id="capacity" placeholder="Enter Capacity" required />
+            <select id="status">
+                <option value="Available">Available</option>
+                <option value="In Use">In Use</option>
+                <option value="Under Maintenance">Under Maintenance</option>
+            </select>
+            <button type="submit">Add Vehicle</button>
+        </form>
+        <p id="message"></p>
+
+        <h2>Update Vehicle</h2>
+        <form id="updateVehicleForm">
+            <input type="number" id="updateVehicleId" placeholder="Vehicle ID" required />
+            <input type="text" id="updateLicensePlate" placeholder="New License Plate" />
+            <input type="text" id="updateModel" placeholder="New Model" />
+            <input type="number" id="updateCapacity" placeholder="New Capacity" />
+            <select id="updateStatus">
+                <option value="Available">Available</option>
+                <option value="In Use">In Use</option>
+                <option value="Under Maintenance">Under Maintenance</option>
+            </select>
+            <button type="submit">Update Vehicle</button>
+        </form>
+        <p id="updateMessage"></p>
+
+        <h2>Delete Vehicle</h2>
+        <form id="deleteVehicleForm">
+            <input type="number" id="deleteVehicleId" placeholder="Vehicle ID" required />
+            <button type="submit">Delete Vehicle</button>
+        </form>
+        <p id="deleteMessage"></p>
+    </div>
+
+    <script>
+        // Add Vehicle
+        document.getElementById("vehicleForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const licensePlate = document.getElementById("licensePlate").value.trim();
+            const model = document.getElementById("model").value.trim();
+            const capacity = parseInt(document.getElementById("capacity").value.trim());
+            const status = document.getElementById("status").value;
+            const messageElement = document.getElementById("message");
+
+            messageElement.textContent = "";
+            messageElement.style.color = "red";
+
+            if (!licensePlate || !model || !capacity) {
+                messageElement.textContent = "License Plate, Model, and Capacity are required!";
+                return;
+            }
+
+            const vehicleData = { licensePlate, model, capacity, status };
+
+            try {
+                const response = await fetch(
+                    "http://localhost:8080/CabXpert_Back-end/webresources/Vehicles/add",
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(vehicleData),
+                    }
+                );
+
+                const responseText = await response.text();
+
+                if (!response.ok) {
+                    let errorMessage = `Error ${response.status}: ${response.statusText}`;
+                    try {
+                        const jsonResponse = JSON.parse(responseText);
+                        if (jsonResponse.message) {
+                            errorMessage = jsonResponse.message;
+                        }
+                    } catch (jsonError) {
+                        console.error("Response is not JSON:", responseText);
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                messageElement.style.color = "green";
+                messageElement.textContent = "Vehicle added successfully!";
+                document.getElementById("vehicleForm").reset();
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                messageElement.textContent = `Error: ${error.message}`;
+            }
+        });
+
+        // Load All Vehicles
+        document.getElementById("loadVehicles").addEventListener("click", async function () {
+            try {
+                const response = await fetch("http://localhost:8080/CabXpert_Back-end/webresources/Vehicles/all");
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const vehicles = await response.json();
+                const vehiclesList = document.getElementById("vehiclesList");
+                vehiclesList.innerHTML = ""; // Clear previous data
+
+                // Create a table element
+                const table = document.createElement("table");
+                table.classList.add("vehicles-table");
+
+                // Create table header
+                const headerRow = document.createElement("tr");
+                const headers = ["ID", "License Plate", "Model", "Capacity", "Status"];
+                headers.forEach(headerText => {
+                    const th = document.createElement("th");
+                    th.textContent = headerText;
+                    headerRow.appendChild(th);
+                });
+                table.appendChild(headerRow);
+
+                // Populate table rows with vehicle data
+                vehicles.forEach(vehicle => {
+                    const row = document.createElement("tr");
+                    const columns = [vehicle.vehicleID, vehicle.licensePlate, vehicle.model, vehicle.capacity, vehicle.status];
+                    columns.forEach(columnData => {
+                        const td = document.createElement("td");
+                        td.textContent = columnData;
+                        row.appendChild(td);
+                    });
+                    table.appendChild(row);
+                });
+
+                // Append the table to the vehiclesList container
+                vehiclesList.appendChild(table);
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                alert(`Error: ${error.message}`);
+            }
+        });
+
+        // Update Vehicle
+        document.getElementById("updateVehicleForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const id = document.getElementById("updateVehicleId").value.trim();
+            const licensePlate = document.getElementById("updateLicensePlate").value.trim();
+            const model = document.getElementById("updateModel").value.trim();
+            const capacity = parseInt(document.getElementById("updateCapacity").value.trim());
+            const status = document.getElementById("updateStatus").value;
+            const updateMessageElement = document.getElementById("updateMessage");
+
+            updateMessageElement.textContent = "";
+            updateMessageElement.style.color = "red";
+
+            if (!id) {
+                updateMessageElement.textContent = "Vehicle ID is required!";
+                return;
+            }
+
+            // Create an object only with fields that have values
+            const vehicleData = {};
+            if (licensePlate) vehicleData.licensePlate = licensePlate;
+            if (model) vehicleData.model = model;
+            if (capacity) vehicleData.capacity = capacity;
+            if (status) vehicleData.status = status;
+
+            if (Object.keys(vehicleData).length === 0) {
+                updateMessageElement.textContent = "At least one field must be updated!";
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `http://localhost:8080/CabXpert_Back-end/webresources/Vehicles/update/${id}`,
+                    {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(vehicleData),
+                    }
+                );
+
+                const responseData = await response.json();
+
+                if (response.ok) {
+                    updateMessageElement.style.color = "green";
+                }
+                updateMessageElement.textContent = responseData.message;
+            } catch (error) {
+                console.error("Error updating vehicle:", error);
+                updateMessageElement.textContent = "Failed to update vehicle";
+            }
+        });
+
+        // Delete Vehicle
+        document.getElementById("deleteVehicleForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const vehicleId = document.getElementById("deleteVehicleId").value.trim();
+            const deleteMessageElement = document.getElementById("deleteMessage");
+
+            deleteMessageElement.textContent = "";
+            deleteMessageElement.style.color = "red";
+
+            if (!vehicleId) {
+                deleteMessageElement.textContent = "Vehicle ID is required!";
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `http://localhost:8080/CabXpert_Back-end/webresources/Vehicles/delete/${vehicleId}`,
+                    { method: "DELETE" }
+                );
+
+                const responseText = await response.text();
+
+                if (!response.ok) {
+                    let errorMessage = `Error ${response.status}: ${response.statusText}`;
+                    try {
+                        const jsonResponse = JSON.parse(responseText);
+                        if (jsonResponse.message) {
+                            errorMessage = jsonResponse.message;
+                        }
+                    } catch (jsonError) {
+                        console.error("Response is not JSON:", responseText);
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                deleteMessageElement.style.color = "green";
+                deleteMessageElement.textContent = "Vehicle deleted successfully!";
+                document.getElementById("deleteVehicleForm").reset();
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                deleteMessageElement.textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>

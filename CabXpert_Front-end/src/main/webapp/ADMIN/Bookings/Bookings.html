@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+        <link rel="stylesheet" href="Style.css" />
+        <title>Sidebar</title>
+        <style>
+         
+        </style>
+    </head>
+    <body>
+        <!-- Sidebar Menu -->
+        <nav class="menu">
+            <ul>
+                <li class="profile">
+                    <div class="img-box">
+                        <img src="logo.png" alt="Profile Picture" />
+                    </div>
+                    <h2>ADMIN</h2>
+                 <li><a class="active" href="Bookings.html"><i class="fas fa-home"></i><p>Bills</p></a></li>
+                <li><a href="../Login/Register.html"><i class="fa-solid fa-user-group"></i><p>Users</p></a></li>
+                <li><a href="../Driver/Driver.html"><i class="fa-solid fa-user-group"></i><p>Drivers</p></a></li>
+                <li><a href="../Vehicle/Vehicle.html"><i class="fas fa-table"></i><p>Vehicle</p></a></li>
+                <li class="log-out"><a href="../Login/Login.html"><i class="fas fa-sign-out-alt"></i><p>Log Out</p></a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="container">
+            <h2>Booking List</h2>
+            <table id="bookingsTable">
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Customer ID</th>
+                        <th>Pickup Location</th>
+                        <th>Destination</th>
+                        <th>Booking Date</th>
+                        <th>Status</th>
+                        <th>Fare</th>
+                        <th>Driver ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Bookings will be inserted here dynamically -->
+                </tbody>
+            </table>
+
+           
+
+            <!-- New Table for Bills -->
+            <h2>Bill List</h2>
+            <table id="billsTable">
+                <thead>
+                    <tr>
+                        <th>Bill ID</th>
+                        <th>Booking ID</th>
+                        <th>Total Fare</th>
+                        <th>Tax</th>
+                        <th>Discount</th>
+                        <th>Final Amount</th>
+                        <th>Payment Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Bills will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+            // Fetch bookings and bills when the page loads
+            document.addEventListener("DOMContentLoaded", function () {
+                fetchBookings();
+                fetchBills();
+            });
+
+            // Function to fetch bookings from the server
+            function fetchBookings() {
+                fetch("http://localhost:8080/CabXpert_Back-end/webresources/ViewBookings")
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error("Network response was not ok");
+                        }
+                        return response.json();
+                    })
+                    .then((data) => {
+                        displayBookings(data);
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching bookings:", error);
+                    });
+            }
+
+            // Function to display bookings in the table
+            function displayBookings(bookings) {
+                const tableBody = document.querySelector("#bookingsTable tbody");
+                tableBody.innerHTML = ""; // Clear existing data
+
+                bookings.forEach((booking) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${booking.bookingID}</td>
+                        <td>${booking.customerID}</td>
+                        <td>${booking.pickupLocation}</td>
+                        <td>${booking.destination}</td>
+                        <td>${new Date(booking.bookingDateTime).toLocaleString()}</td>
+                        <td>${booking.status}</td>
+                        <td>$${booking.fare.toFixed(2)}</td>
+                        <td>${booking.driverID ? booking.driverID : "Not Assigned"}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            // Function to fetch bills from the server
+            function fetchBills() {
+                fetch("http://localhost:8080/CabXpert_Back-end/webresources/Bills/viewAllBills")
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error("Network response was not ok");
+                        }
+                        return response.json();
+                    })
+                    .then((data) => {
+                        displayBills(data);
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching bills:", error);
+                    });
+            }
+
+            // Function to display bills in the table
+            function displayBills(bills) {
+                const tableBody = document.querySelector("#billsTable tbody");
+                tableBody.innerHTML = ""; // Clear existing data
+
+                bills.forEach((bill) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${bill.BillID}</td>
+                        <td>${bill.BookingID}</td>
+                        <td>Rs. ${bill.TotalFare.toFixed(2)}</td>
+                        <td>Rs. ${bill.Tax.toFixed(2)}</td>
+                        <td>Rs. ${bill.Discount.toFixed(2)}</td>
+                        <td>Rs. ${bill.FinalAmount.toFixed(2)}</td>
+                        <td>
+                            <button class="payment-status-btn ${bill.PaymentStatus.toLowerCase()}" 
+                                    onclick="updatePaymentStatus(${bill.BillID}, '${bill.PaymentStatus}')">
+                                ${bill.PaymentStatus}
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+        </script>
+    </body>
+</html>

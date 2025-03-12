@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Driver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            margin: auto;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #message {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Add Driver</h2>
+
+    <form id="driverForm">
+        <input type="text" id="name" placeholder="Driver Name" required>
+        <input type="text" id="phoneNumber" placeholder="Phone Number" required pattern="\d{10}">
+        <input type="text" id="licenseNumber" placeholder="License Number" required>
+        <button type="submit">Add Driver</button>
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        document.getElementById("driverForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const phoneNumber = document.getElementById("phoneNumber").value.trim();
+    const licenseNumber = document.getElementById("licenseNumber").value.trim();
+    const messageElement = document.getElementById("message");
+
+    // Reset message
+    messageElement.textContent = "";
+    messageElement.style.color = "red";
+
+    // Basic validation
+    if (!name || !phoneNumber || !licenseNumber) {
+        messageElement.textContent = "All fields are required!";
+        return;
+    }
+
+    const driverData = {
+        name: name,
+        phoneNumber: phoneNumber,
+        licenseNumber: licenseNumber
+    };
+
+    try {
+       const response = await fetch("http://localhost:8080/CabXpert_Back-end/webresources/Drivers/add", { 
+ 
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(driverData)
+        });
+
+        const responseText = await response.text(); // Get response as text (to handle non-JSON errors)
+
+        if (!response.ok) {
+            let errorMessage = `Error ${response.status}: ${response.statusText}`;
+            
+            // Try parsing JSON if possible
+            try {
+                const jsonResponse = JSON.parse(responseText);
+                if (jsonResponse.message) {
+                    errorMessage = jsonResponse.message;
+                }
+            } catch (jsonError) {
+                console.error("Response is not JSON:", responseText);
+            }
+
+            throw new Error(errorMessage);
+        }
+
+        // Success case
+        messageElement.style.color = "green";
+        messageElement.textContent = "Driver added successfully!";
+        document.getElementById("driverForm").reset();
+
+    } catch (error) {
+        console.error("Fetch Error:", error);
+        
+        if (error.message.includes("Failed to fetch")) {
+            messageElement.textContent = "API is not reachable. Check if the backend is running.";
+        } else if (error.message.includes("NetworkError")) {
+            messageElement.textContent = "Network error. Check your connection.";
+        } else {
+            messageElement.textContent = `Unexpected error: ${error.message}`;
+        }
+    }
+});
+
+    </script>
+
+</body>
+</html>
